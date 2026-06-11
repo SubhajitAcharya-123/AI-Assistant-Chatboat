@@ -11,4 +11,5 @@ public interface MessageRepository
         extends JpaRepository<Message, Long> {
     List<Message> findByChatSessionId(Long sessionId);
     List<Message> findByChatSessionIdOrderByIdAsc(Long sessionId);
+    void deleteByChatSessionId(Long sessionId);
 }

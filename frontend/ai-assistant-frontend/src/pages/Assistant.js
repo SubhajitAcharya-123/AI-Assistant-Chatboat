@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "../styles/Assistant.css";
@@ -8,9 +8,31 @@ function Assistant() {
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState([]);
   const [sessions, setSessions] = useState([]);
+  const messagesEndRef = useRef(null);
 
   const [currentSessionId, setCurrentSessionId] = useState(1);
   const [input, setInput] = useState("");
+  useEffect(() => {
+
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth"
+    });
+
+  }, [messages]);
+  const deleteSession = async (id) => {
+
+    const confirmed = window.confirm(
+      "Delete this chat?"
+    );
+
+    if (!confirmed) return;
+
+    await axios.delete(
+      `http://localhost:8080/api/sessions/${id}`
+    );
+
+    await loadSessions();
+  };
   const loadMessages = async (sessionId) => {
 
     const response = await axios.get(
@@ -118,7 +140,19 @@ function Assistant() {
             }
             onClick={() => setCurrentSessionId(session.id)}
           >
-            {session.title}
+            <span className="session-title">
+              {session.title}
+            </span>
+
+            <button
+              className="delete-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteSession(session.id);
+              }}
+            >
+              🗑
+            </button>
           </div>
         ))}
 
@@ -153,6 +187,7 @@ function Assistant() {
               </div>
             </div>
           )}
+          <div ref={messagesEndRef}></div>
         </div>
 
         <div className="input-container">
