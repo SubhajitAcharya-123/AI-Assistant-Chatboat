@@ -1,6 +1,6 @@
 package com.subhajit.aiassistant.Services;
 
-import com.fasterxml.jackson.databind.JsonNode;
+
 import com.subhajit.aiassistant.DTO.GeminiResponse;
 import com.subhajit.aiassistant.Entities.Message;
 import com.subhajit.aiassistant.Repository.MessageRepository;
@@ -20,8 +20,11 @@ public class AiService {
 
     private final MessageRepository messageRepository;
 
-    public AiService(MessageRepository messageRepository) {
+    public AiService(MessageRepository messageRepository
+
+                     ) {
         this.messageRepository = messageRepository;
+
     }
     private final RestClient restClient = RestClient.create();
 
