@@ -1,78 +1,80 @@
 package com.subhajit.aiassistant.Services;
 
 
-import com.subhajit.aiassistant.DTO.GeminiResponse;
 import com.subhajit.aiassistant.Entities.Message;
 import com.subhajit.aiassistant.Repository.MessageRepository;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
+import reactor.core.publisher.Flux;
 
+import java.util.ArrayList; // Fix 1: Added missing import
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class AiService {
 
-    @Value("${gemini.api.key}")
-    private String apiKey;
-
-
     private final MessageRepository messageRepository;
+    private final ChatClient chatClient;
 
-    public AiService(MessageRepository messageRepository
-
-                     ) {
+    public AiService(
+            ChatClient.Builder builder,
+            MessageRepository messageRepository
+    ) {
+        this.chatClient = builder.build();
         this.messageRepository = messageRepository;
-
     }
-    private final RestClient restClient = RestClient.create();
 
     public String generateResponse(Long sessionId, String prompt) {
-        try{
-        System.out.println(apiKey);
-        String url =
-                "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key="
-                        + apiKey;
-        System.out.println(url);
+        try {
             List<Message> history = messageRepository.findByChatSessionIdOrderByIdAsc(sessionId);
-            StringBuilder context = new StringBuilder();
-            for (Message message : history) {
 
-                context.append(message.getRole())
-                        .append(": ")
-                        .append(message.getContent())
-                        .append("\n");
+            // Clean up the non-streaming side to match your new structural design pattern too!
+            List<org.springframework.ai.chat.messages.Message> systemMessages = new ArrayList<>();
+            for (Message msg : history) {
+                if ("user".equals(msg.getRole())) {
+                    systemMessages.add(new UserMessage(msg.getContent()));
+                } else {
+                    systemMessages.add(new AssistantMessage(msg.getContent()));
+                }
             }
-        Map<String, Object> body = Map.of(
-                "contents",
-                List.of(
-                        Map.of(
-                                "parts",
-                                List.of(
-                                        Map.of("text", context.toString())
-                                )
-                        )
-                )
-        );
+            systemMessages.add(new UserMessage(prompt));
 
-        GeminiResponse response = restClient.post()
-                .uri(url)
-                .body(body)
-                .retrieve()
-                .body(GeminiResponse.class);
-
-
-        return response.candidates()
-                .getFirst()
-                .content()
-                .parts()
-                .getFirst()
-                .text();
+            return chatClient.prompt()
+                    .messages(systemMessages)
+                    .call()
+                    .content();
 
         } catch (Exception e) {
-
             return "Sorry, Gemini is currently unavailable. Please try again in a few moments.";
+        }
+    }
+
+    public Flux<String> streamResponse(Long sessionId, String prompt) {
+        try {
+            List<Message> history = messageRepository.findByChatSessionIdOrderByIdAsc(sessionId);
+
+            // Fix 2: Explicitly use full package name declaration for the Spring AI collection
+            List<org.springframework.ai.chat.messages.Message> systemMessages = new ArrayList<>();
+
+            for (Message msg : history) {
+                if ("user".equals(msg.getRole())) {
+                    systemMessages.add(new UserMessage(msg.getContent()));
+                } else {
+                    systemMessages.add(new AssistantMessage(msg.getContent()));
+                }
+            }
+
+            systemMessages.add(new UserMessage(prompt));
+
+            return chatClient.prompt()
+                    .messages(systemMessages)
+                    .stream()
+                    .content();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Streaming execution broke: " + e.getMessage(), e);
         }
     }
 }

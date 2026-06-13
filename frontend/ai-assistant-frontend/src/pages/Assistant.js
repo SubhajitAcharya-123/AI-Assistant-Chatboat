@@ -86,37 +86,95 @@ function Assistant() {
     if (isLoading) return;
     if (!input.trim()) return;
 
+    // 1. Declare the interval variable at the top scope of the function
+    let typingInterval;
+
     const userMessage = {
       sender: "user",
       text: input
     };
 
     setMessages(prev => [...prev, userMessage]);
-
     const currentInput = input;
-
     setInput("");
 
     try {
       setIsLoading(true);
-      const response = await axios.post(
-        "http://localhost:8080/api/chat",
+
+      // Add the empty placeholder instance for the assistant's response
+      setMessages(prev => [
+        ...prev,
         {
-          sessionId: currentSessionId,
-          message: currentInput
+          sender: "assistant",
+          text: ""
         }
+      ]);
+
+      // Local worker variables for smooth queue feeding
+      let incomingTextBuffer = "";
+      let displayedText = "";
+
+      const eventSource = new EventSource(
+        `http://localhost:8080/api/chat/stream?sessionId=${currentSessionId}&prompt=${encodeURIComponent(currentInput)}`
       );
-      await loadSessions();
-      const aiMessage = {
-        sender: "assistant",
-        text: response.data
+
+      // Assign the interval to the outer variable
+      typingInterval = setInterval(() => {
+        if (incomingTextBuffer.length > 0) {
+          const nextChar = incomingTextBuffer.charAt(0);
+          incomingTextBuffer = incomingTextBuffer.substring(1);
+          displayedText += nextChar;
+
+          setMessages(prevMessages => {
+            const targetIdx = prevMessages.length - 1;
+            if (targetIdx >= 0 && prevMessages[targetIdx].sender === "assistant") {
+              const updatedArray = [...prevMessages];
+              updatedArray[targetIdx] = {
+                ...updatedArray[targetIdx],
+                text: displayedText
+              };
+              return updatedArray;
+            }
+            return prevMessages;
+          });
+        }
+      }, 12);
+
+      eventSource.onmessage = (event) => {
+        if (event.data === "[DONE]") {
+          console.log("🏁 Server stream finished.");
+          eventSource.close();
+
+          const completionCheck = setInterval(() => {
+            if (incomingTextBuffer.length === 0) {
+              clearInterval(completionCheck);
+              clearInterval(typingInterval); // Now safely accessible
+              setIsLoading(false);
+              if (typeof loadSessions === "function") loadSessions();
+            }
+          }, 100);
+          return;
+        }
+
+        let cleanChunk = event.data;
+        if (cleanChunk.startsWith('"') && cleanChunk.endsWith('"')) {
+          cleanChunk = cleanChunk.slice(1, -1);
+        }
+        cleanChunk = cleanChunk.replace(/\\n/g, "\n");
+
+        incomingTextBuffer += cleanChunk;
       };
 
-      setMessages(prev => [...prev, aiMessage]);
+      eventSource.onerror = () => {
+        console.log("Stream connection closed or broken.");
+        eventSource.close();
+        clearInterval(typingInterval); // Now safely accessible
+        setIsLoading(false);
+      };
 
     } catch (error) {
-      console.error(error);
-    } finally {
+      console.error("Streaming error:", error);
+      if (typingInterval) clearInterval(typingInterval); // Safely handled here too!
       setIsLoading(false);
     }
   };
@@ -181,9 +239,11 @@ function Assistant() {
             </div>
           ))}
           {isLoading && (
-            <div className="message assistant">
+            <div className="message assistant loading-turn">
               <div className="typing-indicator">
-                ● ● ●
+                <span></span>
+                <span></span>
+                <span></span>
               </div>
             </div>
           )}

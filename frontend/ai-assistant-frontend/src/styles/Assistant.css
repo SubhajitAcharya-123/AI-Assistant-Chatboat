@@ -76,10 +76,14 @@
   margin-bottom: 12px;
   word-wrap: break-word;
   white-space: pre-wrap;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 .message p {
-  margin: 0;
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+.message p:last-child {
+  margin-bottom: 0; 
 }
 .message pre {
   background: #1e1e1e;
@@ -96,9 +100,13 @@
 
 .message ul,
 .message ol {
-  padding-left: 20px;
+  padding-left: 24px;
+  margin-top: 4px;
+  margin-bottom: 4px;
 }
-
+.message li {
+  margin-bottom: 2px; 
+}
 .message h1,
 .message h2,
 .message h3 {
@@ -108,16 +116,20 @@
 
 .message.user {
   margin-left: auto;
-  width:fit-content;
+  width: fit-content;
+  max-width: 70%;
   background-color: #19c37d;
   color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
 }
 
 .message.assistant {
-  background: transparent;
+  background: transparent; /* No bubble container background */
   color: white;
-  max-width: 90%;
-  padding: 0;
+  max-width: 100%;         /* Let it expand across the chat pane */
+  padding: 16px 0;         /* Clear side padding so it aligns perfectly with the header */
+  border-bottom: 1px solid #444654;
 }
 
 .input-container {
@@ -143,7 +155,40 @@
 }
 
 .typing-indicator {
-  padding: 12px 16px;
+  display: flex;
+  gap: 5px;
+  padding: 12px 0; /* Aligns with your no-bubble assistant layout */
+  align-items: center;
+  height: 24px;
+}
+
+.typing-indicator span {
+  width: 8px;
+  height: 8px;
+  background-color: #acacbe; /* Clean gray dot color */
+  border-radius: 50%;
+  display: inline-block;
+  /* This runs the wave animation smoothly */
+  animation: waveMovement 1.4s infinite ease-in-out both;
+}
+
+/* Creating the wave effect using animation delays */
+.typing-indicator span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-indicator span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+/* The actual bouncing wave physics */
+@keyframes waveMovement {
+  0%, 80%, 100% { 
+    transform: translateY(0);
+  }
+  40% { 
+    transform: translateY(-8px); /* How high the dot bounces */
+  }
 }
 
 .session-item {
