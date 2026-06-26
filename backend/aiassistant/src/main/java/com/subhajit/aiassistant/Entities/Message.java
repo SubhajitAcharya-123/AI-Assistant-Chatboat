@@ -17,7 +17,11 @@ public class Message {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    private String mediaUrl;
+    private String mediaType;
+    private String fileName;
     @ManyToOne
     @JoinColumn(name = "chat_session_id")
     private ChatSession chatSession;
+
 }
