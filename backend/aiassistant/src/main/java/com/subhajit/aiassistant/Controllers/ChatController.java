@@ -8,7 +8,12 @@ import com.subhajit.aiassistant.Entities.Message;
 import com.subhajit.aiassistant.Repository.ChatSessionRepository;
 import com.subhajit.aiassistant.Repository.MessageRepository;
 import com.subhajit.aiassistant.Services.AiService;
+import com.subhajit.aiassistant.Services.MemoryBackgroundService;
 import org.springframework.ai.content.Media;
+import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.SearchRequest;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +23,7 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.apache.tika.Tika;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -28,17 +34,22 @@ public class ChatController {
     private final AiService aiService;
     private final ChatSessionRepository sessionRepository;
     private final MessageRepository messageRepository;
+    private final MemoryBackgroundService memoryBackgroundService;
     private final Tika tikaParser; // --- FIX 1: Add missing Tika field ---
+    @Autowired
+    private VectorStore vectorStore;
 
     public ChatController(
             AiService aiService,
             ChatSessionRepository sessionRepository,
-            MessageRepository messageRepository
+            MessageRepository messageRepository,
+            MemoryBackgroundService memoryBackgroundService
     ){
         this.aiService = aiService;
         this.sessionRepository = sessionRepository;
         this.messageRepository = messageRepository;
-        this.tikaParser = new Tika(); // --- FIX 2: Initialize Tika Parser ---
+        this.tikaParser = new Tika();// --- FIX 2: Initialize Tika Parser ---
+        this.memoryBackgroundService = memoryBackgroundService;
     }
 
     @PostMapping
@@ -67,6 +78,13 @@ public class ChatController {
         aiMessage.setContent(aiResponse);
         aiMessage.setChatSession(session);
         messageRepository.save(aiMessage);
+        aiService.indexAssistantMemory(request.getSessionId(), aiResponse);
+        aiService.indexChatMemory(request.getSessionId(), request.getMessage());
+
+        long count = messageRepository.findByChatSessionId(request.getSessionId()).size();
+        if(count % 20 == 0) {
+            aiService.summarizeSession(request.getSessionId());
+        }
 
         return aiResponse;
     }
@@ -103,8 +121,10 @@ public class ChatController {
                         System.out.print(chunk);
                         System.out.flush();
                         fullResponse.append(chunk);
-                        String cleanChunk = chunk.replace("\n", "\\n");
-                        emitter.send(SseEmitter.event().comment("flush").data(cleanChunk));
+
+                        String cleanChunk = chunk.replace("\r", "").replace("\n", "\\n");
+
+                        emitter.send(SseEmitter.event().data(cleanChunk));
                     } catch (IOException e) {
                         System.out.println("⚠️ Client disconnected early from stream.");
                     }
@@ -118,8 +138,17 @@ public class ChatController {
                         aiMessage.setChatSession(session);
                         messageRepository.save(aiMessage);
 
+                        // 1. Immediately notify the frontend that the stream is successfully done
                         emitter.send(SseEmitter.event().data("[DONE]"));
                         emitter.complete();
+
+                        // 2. 🛡️ Disconnect background tasks from the SSE connection thread pool
+                        memoryBackgroundService.processMemory(
+                                sessionId,
+                                prompt,
+                                fullResponse.toString()
+                        );
+
                     } catch (IOException e) {
                         emitter.completeWithError(e);
                     }
@@ -140,15 +169,31 @@ public class ChatController {
             @RequestParam("sessionId") Long sessionId
     ) {
         ChatSession session = sessionRepository.findById(sessionId).orElseThrow();
+
+        // 🚀 THE FIX: Dynamically update session title if it's currently a placeholder
+        try {
+            if (session.getTitle() == null || "New Chat".equals(session.getTitle().trim())) {
+                String cleanTitle = "Attached File: " + file.getOriginalFilename();
+                // Avoid DB schema varchar length overflow limits (truncate safely if name is huge)
+                if (cleanTitle.length() > 40) {
+                    cleanTitle = cleanTitle.substring(0, 37) + "...";
+                }
+                session.setTitle(cleanTitle);
+                sessionRepository.save(session); // Sync to DB instantly
+                System.out.println("📝 Session " + sessionId + " title updated to: " + cleanTitle);
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️ Non-fatal error updating session upload title: " + e.getMessage());
+        }
+
         FileUploadResult uploadResult =
                 aiService.handleFileUploadAndGetContent(file);
 
         // Save incoming user message directly to history DB
         Message userMessage = new Message();
         userMessage.setRole("user");
-        userMessage.setContent( prompt);
+        userMessage.setContent(prompt);
         userMessage.setMediaUrl(uploadResult.getMediaUrl());
-
         userMessage.setMediaType(uploadResult.getMediaType());
         userMessage.setFileName(uploadResult.getFileName());
         userMessage.setChatSession(session);
@@ -176,18 +221,7 @@ public class ChatController {
                 aiResponse = "Failed to process the image: " + e.getMessage();
             }
         } else {
-
             String extractedText = uploadResult.getExtractedContent();
-//            try {
-//                if (file.getOriginalFilename() != null && file.getOriginalFilename().endsWith(".txt")) {
-//                    extractedText = new String(file.getBytes(), StandardCharsets.UTF_8);
-//                } else {
-//                    extractedText = tikaParser.parseToString(file.getInputStream());
-//                }
-//            } catch (Exception e) {
-//                // --- FIX 4: Corrected System.err.println compilation symbol block ---
-//                System.err.println("Failed parsing document text: " + e.getMessage());
-//            }
 
             if (extractedText == null || extractedText.trim().isEmpty()) {
                 return new UploadResponse(
@@ -221,15 +255,49 @@ public class ChatController {
                 uploadResult.getExtractedContent()
         );
     }
+//    @GetMapping("/test-vector-search")
+//    public String testVectorSearch(@RequestParam Long sessionId, @RequestParam("query") String query) {
+//        System.out.println("🔍 Triggering manual similarity vector search for: " + query);
+//        String result = aiService.searchSessionMemory(sessionId, query);
+//
+//        if (result.isEmpty()) {
+//            return "Vector store returned 0 results. Either no documents are indexed yet, or no matches were found.";
+//        }
+//        return result;
+//    }
+    @GetMapping("/vector-test")
+    public String vectorTest() {
 
-    @GetMapping("/test-vector-search")
-    public String testVectorSearch(@RequestParam("query") String query) {
-        System.out.println("🔍 Triggering manual similarity vector search for: " + query);
-        String result = aiService.searchGlobalMemory(query);
+        vectorStore.add(List.of(
+                new Document(
+                        "My name is Subhajit",
+                        Map.of("source", "test")
+                )
+        ));
 
-        if (result.isEmpty()) {
-            return "Vector store returned 0 results. Either no documents are indexed yet, or no matches were found.";
+        return "Inserted into vector store";
+    }
+    @GetMapping("/vector-search")
+    public String vectorSearch(
+            @RequestParam String query
+    ) {
+
+        SearchRequest request =
+                SearchRequest.builder()
+                        .query(query)
+                        .topK(5)
+                        .build();
+
+        List<Document> docs =
+                vectorStore.similaritySearch(request);
+
+        StringBuilder sb = new StringBuilder();
+
+        for(Document doc : docs){
+            sb.append(doc.getText())
+                    .append("\n\n----------------\n\n");
         }
-        return result;
+
+        return sb.toString();
     }
 }

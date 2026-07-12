@@ -1,8 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "../styles/Assistant.css";
-import axios from "axios"
+import api from "../api/axiosConfig";
 
 function Assistant() {
   const [isLoading, setIsLoading] = useState(false);
@@ -11,11 +12,43 @@ function Assistant() {
   const sidebarTopRef = useRef(null);
   const messagesEndRef = useRef(null);
   const [previewFile, setPreviewFile] = useState(null);
+  const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const isCreatingDefault = useRef(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [currentSessionId, setCurrentSessionId] = useState(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      sessionStorage.removeItem("active_session_id");
+      return null;
+    }
     const saved = sessionStorage.getItem("active_session_id");
     return saved ? parseInt(saved, 10) : null;
   });
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await api.get("/api/auth/me");
+
+        setUsername(response.data.username);
+
+      } catch (err) {
+        console.error(err);
+        setUsername("User");
+      }
+    };
+
+    fetchUser();
+  }, []);
+  const handleLogout = () => {
+
+    localStorage.removeItem("token");
+    sessionStorage.removeItem("active_session_id");
+    navigate("/login");
+  };
 
   useEffect(() => {
     if (currentSessionId) {
@@ -52,12 +85,12 @@ function Assistant() {
   const deleteSession = async (id) => {
     const confirmed = window.confirm("Delete this chat?");
     if (!confirmed) return;
-    await axios.delete(`http://localhost:8080/api/sessions/${id}`);
+    await api.delete(`http://localhost:8080/api/sessions/${id}`);
     await loadSessions();
   };
 
   const loadMessages = async (sessionId) => {
-    const response = await axios.get(`http://localhost:8080/api/chat/session/${sessionId}`);
+    const response = await api.get(`/api/chat/session/${sessionId}`);
     const formattedMessages = response.data.map(message => ({
       sender: message.role,
       text: message.content,
@@ -70,18 +103,27 @@ function Assistant() {
 
   useEffect(() => {
     if (currentSessionId) {
+      setIsLoading(false);
       loadMessages(currentSessionId);
     }
   }, [currentSessionId]);
 
   const handleNewChat = async () => {
-    const response = await axios.post("http://localhost:8080/api/sessions");
-    setSessions(prev => [response.data, ...prev]);
-    setCurrentSessionId(response.data.id);
-    setMessages([]);
-    setTimeout(() => {
-      sidebarTopRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 50);
+    try {
+      const response = await api.post("/api/sessions");
+      setSessions(prev => [response.data, ...prev]);
+      setCurrentSessionId(response.data.id);
+      setMessages([]);
+
+      setTimeout(() => {
+        sidebarTopRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 50);
+
+      return response.data; // return data to ensure the Promise resolves with the new session payload
+    } catch (err) {
+      console.error("Failed to create new chat session:", err);
+      throw err;
+    }
   };
 
   useEffect(() => {
@@ -90,44 +132,52 @@ function Assistant() {
 
   const loadSessions = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/api/sessions");
+      const response = await api.get("/api/sessions");
       const sessionsData = response.data;
       setSessions(sessionsData);
 
-      // Read from storage to see if the user is refreshing an active tab
       const savedSessionId = sessionStorage.getItem("active_session_id");
 
       if (sessionsData.length > 0) {
         if (savedSessionId) {
-          // SCENARIO 1: The user refreshed the page. Stay on the exact same session!
           const parsedId = parseInt(savedSessionId, 10);
           setCurrentSessionId(parsedId);
+          // ✅ Load messages for this session first before lifting the gate
+          // await loadMessages(parsedId);
         } else {
-          // SCENARIO 2: Fresh app launch. Look at the top session item.
           if (sessionsData[0].title === "New Chat") {
-            // Reuse the existing empty session
             setCurrentSessionId(sessionsData[0].id);
             sessionStorage.setItem("active_session_id", sessionsData[0].id);
+            await loadMessages(sessionsData[0].id);
           } else {
-            // If the top chat already has history, cleanly spin up a fresh blank canvas!
-            handleNewChat();
+            if (!isCreatingDefault.current) {
+              isCreatingDefault.current = true;
+              await handleNewChat();
+              isCreatingDefault.current = false;
+            }
           }
         }
       } else {
-        // If the database has absolutely zero sessions, spin one up right now
-        handleNewChat();
+        if (!isCreatingDefault.current) {
+          isCreatingDefault.current = true;
+          await handleNewChat();
+          isCreatingDefault.current = false;
+        }
       }
     } catch (err) {
       console.error("Failed to populate sidebar chat items:", err);
+    } finally {
+      // ✅ Initial workspace alignment is done! Lift the gate safely.
+      setIsInitialLoading(false);
     }
   };
-
 
   const handleSend = async () => {
     if (isLoading) return;
     if (!input.trim() && !selectedFile) return;
 
     let typingInterval;
+    let completionCheck;
 
     let userMessageText = input;
     if (selectedFile) {
@@ -140,7 +190,6 @@ function Assistant() {
       mediaUrl: null,
       mediaType: null,
       fileName: null
-
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -170,16 +219,20 @@ function Assistant() {
         formData.append("prompt", currentInput);
         formData.append("sessionId", currentSessionId);
 
-        const response = await axios.post("http://localhost:8080/api/chat/upload", formData, {
+        const response = await api.post("/api/chat/upload", formData, {
           headers: {
             "Content-Type": "multipart/form-data"
           }
         });
+
         console.log("UPLOAD RESPONSE:", response.data);
         const uploadData = response.data;
+
+        // Populate the unique buffer cleanly 
+        incomingTextBuffer = uploadData.aiResponse;
+
         setMessages(prev => {
           const updated = [...prev];
-
           for (let i = updated.length - 1; i >= 0; i--) {
             if (updated[i].sender === "user") {
               updated[i] = {
@@ -192,47 +245,55 @@ function Assistant() {
               break;
             }
           }
-
           return updated;
         });
-        incomingTextBuffer = uploadData.aiResponse;
       } else {
-        const eventSource = new EventSource(
-          `http://localhost:8080/api/chat/stream?sessionId=${currentSessionId}&prompt=${encodeURIComponent(currentInput)}`
+        const token = localStorage.getItem("token");
+
+        const response = await fetch(
+          `http://localhost:8080/api/chat/stream?sessionId=${currentSessionId}&prompt=${encodeURIComponent(currentInput)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
         );
 
-        eventSource.onmessage = (event) => {
-          if (event.data === "[DONE]") {
-            eventSource.close();
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
 
-            const completionCheck = setInterval(() => {
-              if (incomingTextBuffer.length === 0) {
-                clearInterval(completionCheck);
-                clearInterval(typingInterval);
-                setIsLoading(false);
-                if (typeof loadSessions === "function") loadSessions();
-              }
-            }, 50);
-            return;
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let leftoverBuffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const combinedPayload = leftoverBuffer + chunk;
+
+          const lines = combinedPayload.split("\n");
+          leftoverBuffer = lines.pop() || "";
+
+          for (const line of lines) {
+            const trimmedLine = line.trim();
+            if (!trimmedLine || !trimmedLine.startsWith("data:")) continue;
+
+            let cleanChunk = trimmedLine.replace("data:", "").trim();
+            if (cleanChunk === "[DONE]") break;
+
+            if (cleanChunk.startsWith('"') && cleanChunk.endsWith('"')) {
+              cleanChunk = cleanChunk.slice(1, -1);
+            }
+
+            incomingTextBuffer += cleanChunk.replace(/\\n/g, "\n");
           }
-
-          let cleanChunk = event.data;
-          if (cleanChunk.startsWith('"') && cleanChunk.endsWith('"')) {
-            cleanChunk = cleanChunk.slice(1, -1);
-          }
-          cleanChunk = cleanChunk.replace(/\\n/g, "\n");
-          incomingTextBuffer += cleanChunk;
-        };
-
-        // --- FIXED: Reset state completely on error so it never hangs ---
-        eventSource.onerror = (err) => {
-          console.error("EventSource failed:", err);
-          eventSource.close();
-          if (typingInterval) clearInterval(typingInterval);
-          setIsLoading(false);
-        };
+        }
       }
 
+      // 🔥 UNIFIED TYPING ANIMATION: Executes smoothly across both text channels
       typingInterval = setInterval(() => {
         if (incomingTextBuffer.length > 0) {
           const nextSpaceIdx = incomingTextBuffer.indexOf(" ");
@@ -248,37 +309,69 @@ function Assistant() {
 
           displayedText += chunk;
 
-          setMessages(prevMessages => {
-            const targetIdx = prevMessages.length - 1;
-            if (targetIdx >= 0 && prevMessages[targetIdx].sender === "assistant") {
-              const updatedArray = [...prevMessages];
-              updatedArray[targetIdx] = {
-                ...updatedArray[targetIdx],
-                text: displayedText
-              };
-              return updatedArray;
+          setMessages(prev => {
+            const idx = prev.length - 1;
+            if (idx >= 0 && prev[idx].sender === "assistant") {
+              const updated = [...prev];
+              updated[idx] = { ...updated[idx], text: displayedText };
+              return updated;
             }
-            return prevMessages;
+            return prev;
           });
-        } else if (!isLoading && currentFile) {
-          // Fallback mechanism for non-streamed HTTP upload text chunks
-          clearInterval(typingInterval);
-          setIsLoading(false);
-          loadSessions();
         }
       }, 25);
+
+      // 🔥 UNIFIED COMPLETION WORKER: Safely tracks and handles processing terminations
+      completionCheck = setInterval(() => {
+        if (incomingTextBuffer.length === 0) {
+          clearInterval(completionCheck);
+          if (typingInterval) clearInterval(typingInterval);
+
+          setIsLoading(false);
+
+          if (typeof loadSessions === "function") {
+            loadSessions();
+          }
+        }
+      }, 50);
 
     } catch (error) {
       console.error("Transmission error:", error);
       if (typingInterval) clearInterval(typingInterval);
-      setIsLoading(false); // Clean up UI state lock instantly
+      if (completionCheck) clearInterval(completionCheck);
+      setIsLoading(false);
+
+      setMessages(prev => {
+        const updated = [...prev];
+        if (updated.length > 0 && updated[updated.length - 1].sender === "assistant" && updated[updated.length - 1].text === "") {
+          updated[updated.length - 1].text = "⚠️ Connection interrupted. Please try re-sending your message.";
+        }
+        return updated;
+      });
     }
   };
   return (
     <div className="assistant-container">
-      {/* Sidebar */}
-      <div className="sidebar">
-        <button className="new-chat-btn" onClick={handleNewChat}>
+      {/* 📱 Mobile Overlay Backdrop: Closes the sidebar drawer when tapping anywhere on the chat canvas */}
+      {isSidebarOpen && (
+        <div 
+          className="sidebar-overlay" 
+          onClick={() => setIsSidebarOpen(false)} 
+        />
+      )}
+
+      {/* Sidebar - Dynamically appends the mobile visibility toggle frame modifier */}
+      <div className={`sidebar ${isSidebarOpen ? "open" : ""}`}>
+        <button className="logout-btn" onClick={handleLogout}>
+          Logout
+        </button>
+        <button 
+          className="new-chat-btn" 
+          onClick={async () => {
+            await handleNewChat();
+            setIsSidebarOpen(false); // 📱 Auto-close drawer view on select
+          }}
+        >
           + New Chat
         </button>
 
@@ -290,7 +383,10 @@ function Assistant() {
             <div
               key={session.id}
               className={currentSessionId === session.id ? "session-item active" : "session-item"}
-              onClick={() => setCurrentSessionId(session.id)}
+              onClick={() => {
+                setCurrentSessionId(session.id);
+                setIsSidebarOpen(false); // 📱 Auto-close drawer view after switching chats
+              }}
             >
               <span className="session-title">{session.title}</span>
               <button
@@ -309,85 +405,109 @@ function Assistant() {
 
       {/* Main Chat Area */}
       <div className="chat-section">
-        <div className="chat-header">
+        <div className="chat-header" style={{ display: 'flex', alignItems: 'center' }}>
+          {/* ☰ Mobile Toggle Trigger Hamburger Button */}
+          <button 
+            className="mobile-menu-btn" 
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          >
+            ☰
+          </button>
           <h2>AI Assistant</h2>
         </div>
 
         <div className="messages-container">
-          {messages.length === 0 && (
-            <div className="message assistant">
-              Hello! How can I help you today today? Feel free to upload files or documents!
+          {/* 🌟 FIX 1: If application is performing initial load alignment, show a clean, non-disruptive loader */}
+          {isInitialLoading ? (
+            <div className="initial-workspace-loader" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+              <div className="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <p style={{ color: "#888", marginTop: "12px", fontSize: "14px" }}>Loading workspace...</p>
             </div>
-          )}
-          {messages.map((message, index) => (
-            <div key={index} className={`message ${message.sender}`}>
-              {/* IMAGE */}
-
-              {message.mediaType?.startsWith("image/") && (
-                <div
-                  className="attachment-card"
-                  onClick={() =>
-                    setPreviewFile({
-                      url: message.mediaUrl,
-                      type: message.mediaType
-                    })
-                  }
-                >
-                  🖼️ {message.fileName}
-                  <span>Click to Preview</span>
+          ) : (
+            <>
+              {/* 🌟 FIX 2: Welcome banner only mounts if workspace data is active, message thread is completely blank, AND username is valid */}
+              {messages.length === 0 && username && (
+                <div className="welcome-container">
+                  <h1>
+                    👋 Welcome, {username.charAt(0).toUpperCase() + username.slice(1)}!
+                  </h1>
+                  <p>How can I help you today?</p>
                 </div>
               )}
-              {/* PDF */}
 
-              {message.mediaType === "application/pdf" && (
-                <div
-                  className="attachment-card"
-                  onClick={() =>
-                    setPreviewFile({
-                      url: message.mediaUrl,
-                      type: message.mediaType
-                    })
-                  }
-                >
-                  📄 {message.fileName}
-                  <span>Click to Preview</span>
-                </div>
-              )}
-              {/* OTHER FILES */}
-
-              {message.mediaUrl &&
-                !message.mediaType?.startsWith("image/") &&
-                message.mediaType !== "application/pdf" && (
-                  <div
-                    className="attachment-card"
-                    onClick={() => {
-
-                      if (message.mediaType === "text/plain") {
-
+              {/* Message Thread History Rendering */}
+              {messages.map((message, index) => (
+                <div key={index} className={`message ${message.sender}`}>
+                  {/* IMAGE PREVIEW CARD */}
+                  {message.mediaType?.startsWith("image/") && (
+                    <div
+                      className="attachment-card"
+                      onClick={() =>
                         setPreviewFile({
-                          type: "text/plain",
-                          fileName: message.fileName,
-                          content: message.extractedContent
-                        });
-
-                      } else {
-                        window.open(message.mediaUrl, "_blank");
+                          url: message.mediaUrl,
+                          type: message.mediaType
+                        })
                       }
-                    }}
-                  >
-                    📎 {message.fileName || "Attachment"}
-                    <span>
-                      {message.mediaType === "text/plain"
-                        ? "Click to Preview"
-                        : "Click to Open"}
-                    </span>
-                  </div>
-                )}
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {message.text}
-              </ReactMarkdown>
-            </div>
-          ))}
+                    >
+                      🖼️ {message.fileName}
+                      <span>Click to Preview</span>
+                    </div>
+                  )}
+
+                  {/* PDF PREVIEW CARD */}
+                  {message.mediaType === "application/pdf" && (
+                    <div
+                      className="attachment-card"
+                      onClick={() =>
+                        setPreviewFile({
+                          url: message.mediaUrl,
+                          type: message.mediaType
+                        })
+                      }
+                    >
+                      📄 {message.fileName}
+                      <span>Click to Preview</span>
+                    </div>
+                  )}
+
+                  {/* OTHER GENERIC ATTACHMENT CARDS */}
+                  {message.mediaUrl &&
+                    !message.mediaType?.startsWith("image/") &&
+                    message.mediaType !== "application/pdf" && (
+                      <div
+                        className="attachment-card"
+                        onClick={() => {
+                          if (message.mediaType === "text/plain") {
+                            setPreviewFile({
+                              type: "text/plain",
+                              fileName: message.fileName,
+                              content: message.extractedContent
+                            });
+                          } else {
+                            window.open(message.mediaUrl, "_blank");
+                          }
+                        }}
+                      >
+                        📎 {message.fileName || "Attachment"}
+                        <span>
+                          {message.mediaType === "text/plain" ? "Click to Preview" : "Click to Open"}
+                        </span>
+                      </div>
+                    )}
+
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {message.text}
+                  </ReactMarkdown>
+                </div>
+              ))}
+            </>
+          )}
+
+          {/* Active Turn Assistant Processing Loader Indicator */}
           {isLoading && messages[messages.length - 1]?.text === "" && (
             <div className="message assistant loading-turn">
               <div className="typing-indicator">
@@ -400,10 +520,8 @@ function Assistant() {
           <div ref={messagesEndRef}></div>
         </div>
 
-        {/* Input Control Console */}
+        {/* Input Control Console Layout */}
         <div className="input-area-wrapper">
-
-          {/* File Preview Chip Section populates here right above input box */}
           {selectedFile && (
             <div className="file-preview-chip">
               <span className="file-icon">📁</span>
@@ -413,7 +531,6 @@ function Assistant() {
           )}
 
           <div className="input-container">
-            {/* Hidden native input layer */}
             <input
               type="file"
               ref={fileInputRef}
@@ -422,7 +539,6 @@ function Assistant() {
               accept=".pdf,.txt,.doc,.docx,.png,.jpg,.jpeg"
             />
 
-            {/* Trigger Button */}
             <button
               className="attachment-add-btn"
               onClick={() => fileInputRef.current?.click()}
@@ -447,23 +563,15 @@ function Assistant() {
           </div>
         </div>
       </div>
+
+      {/* Interactive Floating Preview Modal Container */}
       {previewFile && (
-        <div
-          className="preview-modal-overlay"
-          onClick={() => setPreviewFile(null)}
-        >
-          <div
-            className="preview-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              className="close-preview-btn"
-              onClick={() => setPreviewFile(null)}
-            >
+        <div className="preview-modal-overlay" onClick={() => setPreviewFile(null)}>
+          <div className="preview-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="close-preview-btn" onClick={() => setPreviewFile(null)}>
               ✕
             </button>
 
-            {/* PDF */}
             {previewFile.type === "application/pdf" && (
               <iframe
                 src={previewFile.url}
@@ -472,26 +580,15 @@ function Assistant() {
                 height="100%"
               />
             )}
-            
-            {/* IMAGE */}
+
             {previewFile.type?.startsWith("image/") && (
-              <img
-                src={previewFile.url}
-                alt="preview"
-                className="full-image-preview"
-              />
+              <img src={previewFile.url} alt="preview" className="full-image-preview" />
             )}
 
-            {/* TXT */}
             {previewFile.type === "text/plain" && (
               <div className="text-preview-container">
-
                 <h3>{previewFile.fileName}</h3>
-
-                <pre className="text-preview-content">
-                  {previewFile.content}
-                </pre>
-
+                <pre className="text-preview-content">{previewFile.content}</pre>
               </div>
             )}
           </div>

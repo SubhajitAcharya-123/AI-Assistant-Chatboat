@@ -7,9 +7,15 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface MessageRepository
-        extends JpaRepository<Message, Long> {
+public interface MessageRepository extends JpaRepository<Message, Long> {
+
     List<Message> findByChatSessionId(Long sessionId);
+
     List<Message> findByChatSessionIdOrderByIdAsc(Long sessionId);
+
+    List<Message> findTop20ByChatSessionIdOrderByIdDesc(Long sessionId);
+
+    long countByChatSessionId(Long sessionId);
+
     void deleteByChatSessionId(Long sessionId);
 }

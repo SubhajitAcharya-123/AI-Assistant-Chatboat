@@ -92,6 +92,35 @@
   flex-direction: column;
 }
 
+.welcome-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+.welcome-container h1 {
+  font-size: 1.875rem; 
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #ffffff; 
+  letter-spacing: -0.025em;
+  
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.welcome-container p {
+  color: #c5c5d2; 
+  font-size: 0.95rem;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
 .message {
   max-width: 70%;
   /* width:fit-content; */
@@ -448,4 +477,117 @@
   padding: 15px;
   border-radius: 8px;
   font-family: monospace;
+}
+.logout-btn {
+    width: 100%;
+    margin-top: auto;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: none;
+    border-radius: 8px;
+
+    cursor: pointer;
+
+    font-size: 15px;
+    font-weight: 600;
+
+    transition: 0.2s ease;
+}
+
+.logout-btn:hover {
+    transform: translateY(-1px);
+}
+/*mobile viewport */
+@media (max-width: 768px) {
+  .assistant-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Hide the desktop menu drawer completely by defaulting off-screen left */
+  .sidebar {
+    position: absolute;
+    left: -280px; /* Hidden off-screen right at start */
+    top: 0;
+    width: 280px;
+    height: 100%;
+    z-index: 1000; /* Floats over message components */
+    transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: #1e1e24; /* Ensure contrast overlay matches design theme */
+  }
+
+  /* Slides the sidebar drawer frame smoothly back into the viewport */
+  .sidebar.open {
+    left: 0;
+  }
+
+  /* Dimmed screen backdrop overlay covering the main canvas chat room zone */
+  .sidebar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999; /* Standard layering shield underneath the drawer */
+    backdrop-filter: blur(2px);
+  }
+
+  /* Force the active chat zone layout to occupy full width bounds */
+  .chat-section {
+    width: 100% !important;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Display the hamburger icon element cleanly only on mobile */
+  .mobile-menu-btn {
+    display: block !important;
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0 12px;
+    margin-right: 8px;
+  }
+
+  /* Adjust chat text sizes and bubble maximum space thresholds */
+  .messages-container {
+    padding: 12px 8px;
+  }
+
+  .message {
+    max-width: 88% !important;
+    font-size: 14.5px;
+    line-height: 1.4;
+  }
+
+  /* Input wrapper console touch improvements */
+  .input-area-wrapper {
+    padding: 8px;
+  }
+
+  .input-container {
+    gap: 4px;
+    padding: 4px 8px;
+  }
+
+  /* 🚀 CRITICAL MOBILE FIX: Stop iOS Safari / Android Chrome from auto-zooming input fields */
+  .input-container input[type="text"] {
+    font-size: 16px !important; 
+  }
+}
+
+/* Ensure the hamburger icon element is hidden completely on desktop */
+@media (min-width: 769px) {
+  .mobile-menu-btn {
+    display: none;
+  }
+  .sidebar-overlay {
+    display: none;
+  }
 }

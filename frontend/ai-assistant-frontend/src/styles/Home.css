@@ -1,0 +1,41 @@
+.home-container{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#111827;
+}
+
+.home-card{
+    background:#1f2937;
+    padding:40px;
+    border-radius:16px;
+    width:500px;
+    text-align:center;
+}
+
+.home-card h1{
+    color:white;
+}
+
+.home-card p{
+    color:#d1d5db;
+    margin:20px 0;
+}
+
+.home-buttons{
+    display:flex;
+    gap:15px;
+    justify-content:center;
+}
+
+.home-btn{
+    padding:12px 24px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.secondary{
+    background:white;
+}
