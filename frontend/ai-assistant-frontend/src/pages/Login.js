@@ -36,10 +36,11 @@ function Login() {
 
             console.error(error);
 
-            alert(
-                error.response?.data?.message
-                || "Login Failed"
-            );
+            if (error.response && (error.response.status === 401 || error.response.status === 404)) {
+                alert("No record found. Either email/username or password incorrect.");
+            } else {
+                alert("An error occurred during login. Please try again.");
+            }
         }
     };
 

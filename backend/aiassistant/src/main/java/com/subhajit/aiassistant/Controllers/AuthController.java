@@ -6,10 +6,12 @@ import com.subhajit.aiassistant.DTO.RegisterRequest;
 import com.subhajit.aiassistant.Entities.User;
 import com.subhajit.aiassistant.Repository.UserRepository;
 import com.subhajit.aiassistant.Services.AuthService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -26,8 +28,15 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Error: Email is already in use!");
 
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(errorResponse);
+        }
         return ResponseEntity.ok(
                 authService.register(request)
         );
