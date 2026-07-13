@@ -17,6 +17,7 @@ function Assistant() {
   const isCreatingDefault = useRef(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
   const [currentSessionId, setCurrentSessionId] = useState(() => {
     const token = localStorage.getItem("token");
@@ -85,7 +86,7 @@ function Assistant() {
   const deleteSession = async (id) => {
     const confirmed = window.confirm("Delete this chat?");
     if (!confirmed) return;
-    await api.delete(`http://localhost:8080/api/sessions/${id}`);
+    await api.delete(`${API_BASE_URL}/api/sessions/${id}`);
     await loadSessions();
   };
 
@@ -251,7 +252,7 @@ function Assistant() {
         const token = localStorage.getItem("token");
 
         const response = await fetch(
-          `http://localhost:8080/api/chat/stream?sessionId=${currentSessionId}&prompt=${encodeURIComponent(currentInput)}`,
+          `${API_BASE_URL}/api/chat/stream?sessionId=${currentSessionId}&prompt=${encodeURIComponent(currentInput)}`,
           {
             headers: {
               Authorization: `Bearer ${token}`
