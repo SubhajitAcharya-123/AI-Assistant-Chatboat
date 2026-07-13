@@ -14,7 +14,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"https://ai-assistant-chatboat.vercel.app" , "http://localhost:3000"})
 public class AuthController {
 
     private final AuthService authService;
