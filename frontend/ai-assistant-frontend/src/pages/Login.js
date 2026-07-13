@@ -28,7 +28,7 @@ function Login() {
                 response.data.token
             );
 
-            alert("Login Successful");
+            // alert("Login Successful");
 
             navigate("/chat");
 
