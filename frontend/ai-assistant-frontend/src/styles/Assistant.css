@@ -583,11 +583,32 @@
   .send-action-btn {
     white-space: nowrap !important; 
     flex-shrink: 0 !important;     /*  Stops the button from getting squished out of view */
-    padding: 10px 16px !important; /* Makes it look clean and well-proportioned on phones */
+    padding: 8px 16px !important; /* Makes it look clean and well-proportioned on phones */
+    align-self: center !important;
   }
   
   .input-container input[type="text"] {
     font-size: 16px !important; 
+    padding: 8px 4px !important; /* Reduces vertical height inside the text box */
+    margin: 0 !important;
+    height: auto !important;
+    background: transparent !important;
+  }
+  .attachment-add-btn {
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    flex-shrink: 0 !important;   
+    border-radius: 50% !important;
+    
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    
+    padding: 0 !important;
+    line-height: 1 !important;
+    font-size: 20px !important;
+    margin-right: 4px !important; /* Adds a tiny bit of breathing space before the input text box */
   }
 }
 
