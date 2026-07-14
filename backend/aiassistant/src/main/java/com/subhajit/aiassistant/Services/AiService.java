@@ -178,6 +178,7 @@ public class AiService {
                 - cover letters
                 - attachments
                 - document contents
+                - ANY file mentioned in previous sessions that you need to re-read
                 
                 For general knowledge, programming, software engineering, mathematics, science, explanations, brainstorming, and normal conversation, answer directly without using tools.
                 
@@ -223,7 +224,7 @@ public class AiService {
                 .query(query)
                 .topK(5)
                 .similarityThreshold(0.35)
-                .filterExpression("memoryType == 'document_memory' && sessionId == " + activeSessionId)
+                .filterExpression("memoryType == 'document_memory' && userEmail == '" + getCurrentUserEmail() + "'")
                 .build();
 
         List<Document> docs = vectorStore.similaritySearch(request);

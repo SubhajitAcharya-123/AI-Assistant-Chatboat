@@ -143,7 +143,7 @@ function Assistant() {
         if (savedSessionId) {
           const parsedId = parseInt(savedSessionId, 10);
           setCurrentSessionId(parsedId);
-          // ✅ Load messages for this session first before lifting the gate
+          //  Load messages for this session first before lifting the gate
           // await loadMessages(parsedId);
         } else {
           if (sessionsData[0].title === "New Chat") {
@@ -168,7 +168,7 @@ function Assistant() {
     } catch (err) {
       console.error("Failed to populate sidebar chat items:", err);
     } finally {
-      // ✅ Initial workspace alignment is done! Lift the gate safely.
+      //  Initial workspace alignment is done! Lift the gate safely.
       setIsInitialLoading(false);
     }
   };
@@ -294,7 +294,7 @@ function Assistant() {
         }
       }
 
-      // 🔥 UNIFIED TYPING ANIMATION: Executes smoothly across both text channels
+      // UNIFIED TYPING ANIMATION: Executes smoothly across both text channels
       typingInterval = setInterval(() => {
         if (incomingTextBuffer.length > 0) {
           const nextSpaceIdx = incomingTextBuffer.indexOf(" ");
@@ -322,7 +322,7 @@ function Assistant() {
         }
       }, 25);
 
-      // 🔥 UNIFIED COMPLETION WORKER: Safely tracks and handles processing terminations
+      //  UNIFIED COMPLETION WORKER: Safely tracks and handles processing terminations
       completionCheck = setInterval(() => {
         if (incomingTextBuffer.length === 0) {
           clearInterval(completionCheck);
@@ -353,7 +353,7 @@ function Assistant() {
   };
   return (
     <div className="assistant-container">
-      {/* 📱 Mobile Overlay Backdrop: Closes the sidebar drawer when tapping anywhere on the chat canvas */}
+      {/*  Mobile Overlay Backdrop: Closes the sidebar drawer when tapping anywhere on the chat canvas */}
       {isSidebarOpen && (
         <div 
           className="sidebar-overlay" 
@@ -370,7 +370,7 @@ function Assistant() {
           className="new-chat-btn" 
           onClick={async () => {
             await handleNewChat();
-            setIsSidebarOpen(false); // 📱 Auto-close drawer view on select
+            setIsSidebarOpen(false); //  Auto-close drawer view on select
           }}
         >
           + New Chat
@@ -386,7 +386,7 @@ function Assistant() {
               className={currentSessionId === session.id ? "session-item active" : "session-item"}
               onClick={() => {
                 setCurrentSessionId(session.id);
-                setIsSidebarOpen(false); // 📱 Auto-close drawer view after switching chats
+                setIsSidebarOpen(false); //  Auto-close drawer view after switching chats
               }}
             >
               <span className="session-title">{session.title}</span>
@@ -407,7 +407,7 @@ function Assistant() {
       {/* Main Chat Area */}
       <div className="chat-section">
         <div className="chat-header" style={{ display: 'flex', alignItems: 'center' }}>
-          {/* ☰ Mobile Toggle Trigger Hamburger Button */}
+          {/*  Mobile Toggle Trigger Hamburger Button */}
           <button 
             className="mobile-menu-btn" 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -418,7 +418,7 @@ function Assistant() {
         </div>
 
         <div className="messages-container">
-          {/* 🌟 FIX 1: If application is performing initial load alignment, show a clean, non-disruptive loader */}
+          {/*  1: If application is performing initial load alignment, show a clean, non-disruptive loader */}
           {isInitialLoading ? (
             <div className="initial-workspace-loader" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
               <div className="typing-indicator">
@@ -430,7 +430,7 @@ function Assistant() {
             </div>
           ) : (
             <>
-              {/* 🌟 FIX 2: Welcome banner only mounts if workspace data is active, message thread is completely blank, AND username is valid */}
+              {/*  2: Welcome banner only mounts if workspace data is active, message thread is completely blank, AND username is valid */}
               {messages.length === 0 && username && (
                 <div className="welcome-container">
                   <h1>

@@ -180,7 +180,7 @@
 .message.assistant {
   background: transparent; /* No bubble container background */
   color: white;
-  max-width: 100%;         /* Let it expand across the chat pane */
+  max-width: 100%;         /* it expand across the chat pane */
   padding: 16px 24px;         /* Clear side padding so it aligns perfectly with the header */
   border-bottom: 1px solid #444654;
   box-sizing: border-box;
@@ -217,7 +217,7 @@
 .typing-indicator {
   display: flex;
   gap: 5px;
-  padding: 12px 0; /* Aligns with your no-bubble assistant layout */
+  padding: 12px 0; /* aligns with your no-bubble assistant layout */
   align-items: center;
   height: 24px;
 }

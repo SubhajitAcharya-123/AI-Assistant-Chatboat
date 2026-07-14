@@ -170,7 +170,6 @@ public class ChatController {
     ) {
         ChatSession session = sessionRepository.findById(sessionId).orElseThrow();
 
-        // 🚀 THE FIX: Dynamically update session title if it's currently a placeholder
         try {
             if (session.getTitle() == null || "New Chat".equals(session.getTitle().trim())) {
                 String cleanTitle = "Attached File: " + file.getOriginalFilename();
