@@ -1,175 +1,102 @@
 # AI Assistant Chatbot
 
-A full-stack AI-powered chatbot built using Spring Boot, React, Spring AI, Google Gemini, MySQL, Cloudinary, and Vector Search.
+A full-stack AI-powered assistant built with **Spring Boot**, **React**, **PostgreSQL + pgvector**, and **Google Gemini**.
 
-## Overview
+## 🚀 Live Demo
 
-This project is an AI Assistant designed to support conversational chat, file understanding, image analysis, and retrieval-augmented responses using semantic search.
+https://ai-assistant-chatboat.vercel.app/
 
-Users can create multiple chat sessions, upload documents/images, ask questions about uploaded content, and receive AI-generated responses powered by Google's Gemini models.
+## Screenshots
 
-The application is currently under active development and new capabilities are being added continuously.
+<p align="center">
+  <img src="./screenshots/screenshot1.png" width="60%" alt="Desktop View" />
+  <img src="./screenshots/screenshot2.png" width="30%" alt="Mobile View" />
+  <img src="./screenshots/screenshot3.png" width="60%" alt="Desktop View" />
+  <img src="./screenshots/screenshot4.png" width="30%" alt="Mobile View" />
+</p>
 
----
+## ✨ Features
 
-## Current Features
+- JWT Authentication
+- Google Gemini Integration
+- Streaming AI Responses (SSE)
+- Long-term Memory System
+- RAG with pgvector
+- PDF, TXT and Image Uploads
+- Semantic Search
+- Cloudinary Storage
+- Mobile Responsive Design
+- Vercel + Render + Neon Deployment
 
-### Chat System
+## 🏗️ Architecture
 
-* Multi-session chat support
-* Persistent chat history
-* Real-time streaming AI responses using Server-Sent Events (SSE)
-* Session-based conversation management
+```text
+React Frontend (Vercel)
+        │
+        ▼
+Spring Boot Backend (Render)
+        │
+        ├── Gemini API
+        ├── Cloudinary
+        └── PostgreSQL + pgvector (Neon)
+```
 
-### AI Integration
-
-* Google Gemini integration via Spring AI
-* Streaming and non-streaming response generation
-* Context-aware conversations using stored chat history
-
-### File Upload Support
-
-* Upload PDF, TXT, DOC, DOCX, PNG, JPG, and JPEG files
-* Automatic file storage using Cloudinary
-* File metadata persistence
-* Uploaded file preview inside chat interface
-
-### Image Understanding
-
-* Multimodal image analysis using Gemini Vision
-* Ask questions about uploaded images
-* AI-generated responses based on image content
-
-### Document Processing
-
-* Apache Tika integration for document text extraction
-* Automatic content parsing from supported files
-* Semantic indexing of extracted text
-
-### Vector Search
-
-* Embedding generation using Gemini Embedding Model
-* Semantic similarity search
-* Cross-session retrieval of previously indexed content
-* Retrieval-Augmented Generation (RAG) workflow
-
-### Modern Chat UI
-
-* Markdown rendering support
-* File attachment previews
-* Image preview modal
-* PDF preview modal
-* Responsive chat interface
-
----
-
-## Tech Stack
-
-### Backend
-
-* Java 17+
-* Spring Boot
-* Spring AI
-* Spring Data JPA
-* Spring WebFlux
-* MySQL
-* Apache Tika
-* Cloudinary
-
-### AI Models
-
-* Gemini 2.5 Flash
-* Gemini Embedding Model
+## 🛠️ Tech Stack
 
 ### Frontend
+- React
+- React Router
+- Axios
+- React Markdown
 
-* React
-* Axios
-* React Markdown
-* CSS
+### Backend
+- Java 17
+- Spring Boot
+- Spring Security
+- JWT
+- Spring AI
+- Maven
 
----
+### Database
+- PostgreSQL
+- pgvector
+- Hibernate
 
-## Project Architecture
+### Deployment
+- Vercel
+- Render
+- Neon
 
-Frontend (React)
-↓
-Spring Boot REST API
-↓
-Spring AI
-↓
-Google Gemini
+## 🔐 Environment Variables
 
-Additional Services:
+```env
+GEMINI_API_KEY=
 
-* Cloudinary (File Storage)
-* MySQL (Chat Persistence)
-* Vector Search Layer (Semantic Retrieval)
+DB_URL=
+DB_USERNAME=
+DB_PASSWORD=
 
----
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
 
-## Example Workflow
+JWT_SECRET=
+```
 
-1. User uploads a PDF.
-2. Document text is extracted using Apache Tika.
-3. Extracted content is converted into embeddings.
-4. Embeddings are indexed into the vector search layer.
-5. User asks a question.
-6. Relevant content is retrieved using similarity search.
-7. Gemini receives both the query and retrieved context.
-8. AI generates a contextual response.
+## 🏃 Getting Started
 
----
+### Backend
+1. Configure your environment variables.
+2. Run: `./mvnw clean spring-boot:run`
 
-## Features In Progress
+### Frontend
+1. Run: `npm install`
+2. Run: `npm start`
 
-The following features are currently being implemented:
+## 👨‍💻 Author
 
-* PostgreSQL + PGVector migration
-* Persistent vector database storage
-* Authentication & Authorization
-* Tool Calling
-* Docker containerization
-* Production deployment
-* User memory management
-* Advanced RAG pipeline
-* Image vector search
-* File vector search optimization
+**Subhajit Acharya**
 
----
+GitHub: https://github.com/SubhajitAcharya-123
 
-## Learning Objectives
-
-This project focuses on practical experience with:
-
-* Retrieval-Augmented Generation (RAG)
-* Vector Databases
-* Large Language Models (LLMs)
-* Spring AI
-* Full Stack Development
-* Cloud File Storage
-* Streaming APIs
-* AI Application Architecture
-
----
-
-## Project Status
-
-🚧 Active Development
-
-This project is continuously evolving as new AI capabilities and production-grade features are added.
-
-Current focus:
-
-* PGVector integration
-* Persistent memory system
-* Docker deployment
-* Authentication system
-
----
-
-## Author
-
-Subhajit Acharya
-
-
+LinkedIn: https://www.linkedin.com/in/subhajit-acharya-288943344/
