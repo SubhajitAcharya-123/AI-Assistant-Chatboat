@@ -8,7 +8,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Assistant from "./pages/Assistant";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { setupAxiosInterceptors } from "./axiosConfig";
+import { setupAxiosInterceptors } from "./api/axiosConfig";
 
 function GlobalLoader({ isLoading }) {
   if (!isLoading) return null;
