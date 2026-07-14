@@ -7,6 +7,7 @@ const api = axios.create({
 
 // A placeholder variable we will wire up in index.js to manage the spinner state
 let spinnerToggler = () => {};
+let spinnerTimeout = null;
 
 export const setupAxiosInterceptors = (setIsLoading) => {
     spinnerToggler = setIsLoading;
@@ -14,7 +15,10 @@ export const setupAxiosInterceptors = (setIsLoading) => {
 
 api.interceptors.request.use(
     (config) => {
-        spinnerToggler(true); //  Turn spinner ON when a request starts
+        if (spinnerTimeout) clearTimeout(spinnerTimeout);
+        spinnerTimeout = setTimeout(() => {
+            spinnerToggler(true);
+        }, 1500);
 
         const token = localStorage.getItem("token");
         if (token) {
@@ -23,6 +27,7 @@ api.interceptors.request.use(
         return config;
     },
     (error) => {
+        if (spinnerTimeout) clearTimeout(spinnerTimeout);
         spinnerToggler(false); //  Turn spinner OFF if the request fails to send
         return Promise.reject(error);
     }
@@ -30,10 +35,12 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
     (response) => {
+        if (spinnerTimeout) clearTimeout(spinnerTimeout);
         spinnerToggler(false); //  Turn spinner OFF when successful data arrives
         return response;
     },
     (error) => {
+        if (spinnerTimeout) clearTimeout(spinnerTimeout);
         spinnerToggler(false); // Turn spinner OFF if backend throws an error
         return Promise.reject(error);
     }
