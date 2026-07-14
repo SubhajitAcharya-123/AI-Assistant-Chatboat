@@ -568,15 +568,24 @@
 
   /* Input wrapper console touch improvements */
   .input-area-wrapper {
-    padding: 8px;
+    margin: 0 12px 12px 12px !important; 
+    display: flex;
+    flex-direction: column;
   }
 
   .input-container {
-    gap: 4px;
-    padding: 4px 8px;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100%;
+    box-sizing: border-box;
   }
-
-  /* 🚀 CRITICAL MOBILE FIX: Stop iOS Safari / Android Chrome from auto-zooming input fields */
+  .send-action-btn {
+    white-space: nowrap !important; 
+    flex-shrink: 0 !important;     /*  Stops the button from getting squished out of view */
+    padding: 10px 16px !important; /* Makes it look clean and well-proportioned on phones */
+  }
+  
   .input-container input[type="text"] {
     font-size: 16px !important; 
   }
