@@ -13,7 +13,10 @@ function Register() {
     const handleRegister = async (e) => {
         e.preventDefault();
         try {
-
+            if (!username.trim() || !email.trim() || !password.trim()) {
+              alert("Please fill in all required registration fields.");
+              return;
+            }
             const response = await api.post(
                 "/api/auth/register",
                 {

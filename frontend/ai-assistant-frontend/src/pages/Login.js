@@ -12,6 +12,10 @@ function Login() {
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        if (!email.trim() || !password.trim()) {
+           alert("Please fill in all fields.");
+           return;
+       }
 
         try {
 
@@ -36,7 +40,7 @@ function Login() {
 
             console.error(error);
 
-            if (error.response && (error.response.status === 401 || error.response.status === 404)) {
+            if (error.response && (error.response.status === 401 || error.response.status === 404 || error.response.status === 404)) {
                 alert("No record found. Either email/username or password incorrect.");
             } else {
                 alert("An error occurred during login. Please try again.");
