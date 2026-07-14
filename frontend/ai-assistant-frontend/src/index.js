@@ -26,7 +26,7 @@ function GlobalLoader({ isLoading }) {
       }}></div>
       <p style={{ color: 'white', marginTop: '15px', fontSize: '18px', fontWeight: 'bold', textAlign: 'center', fontFamily: 'sans-serif' }}>
         Connecting to Cloud Server... <br />
-        <span style={{ fontSize: '14px', fontWeight: 'normal', color: '#ccc' }}>(May take up to 50s if server is sleeping)</span>
+        <span style={{ fontSize: '14px', fontWeight: 'normal', color: '#ccc' }}>(May take up to 50s or more if server is sleeping)</span>
       </p>
     </div>
   );

@@ -16,9 +16,12 @@ export const setupAxiosInterceptors = (setIsLoading) => {
 api.interceptors.request.use(
     (config) => {
         if (spinnerTimeout) clearTimeout(spinnerTimeout);
-        spinnerTimeout = setTimeout(() => {
-            spinnerToggler(true);
-        }, 1500);
+        const isChatRequest = config.url.includes("/api/chat") || config.url.includes("/stream");
+        if (!isChatRequest) {
+            spinnerTimeout = setTimeout(() => {
+                spinnerToggler(true);
+            }, 1500);
+        }
 
         const token = localStorage.getItem("token");
         if (token) {
