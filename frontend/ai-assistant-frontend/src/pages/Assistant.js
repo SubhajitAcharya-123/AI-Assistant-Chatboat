@@ -30,14 +30,7 @@ function Assistant() {
     const saved = sessionStorage.getItem("active_session_id");
     return saved ? parseInt(saved, 10) : null;
   });
-  const handleFocus = (e) => {
-    setTimeout(() => {
-      e.target.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-      });
-    }, 300);
-  };
+  
   useEffect(() => {
     const updateHeight = () => {
       setViewportHeight(window.innerHeight);
