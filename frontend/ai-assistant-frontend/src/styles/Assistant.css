@@ -585,6 +585,7 @@
 
   /* Force the active chat zone layout to occupy full width bounds */
   .chat-section {
+    padding-top: 70px;
     width: 100% !important;
     height: 100dvh;
     display: flex;
