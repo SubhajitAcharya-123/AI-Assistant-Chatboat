@@ -17,6 +17,7 @@ function Assistant() {
   const isCreatingDefault = useRef(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
   const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
   const [currentSessionId, setCurrentSessionId] = useState(() => {
@@ -28,6 +29,25 @@ function Assistant() {
     const saved = sessionStorage.getItem("active_session_id");
     return saved ? parseInt(saved, 10) : null;
   });
+  const handleFocus = (e) => {
+    setTimeout(() => {
+      e.target.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    }, 300);
+  };
+  useEffect(() => {
+    const updateHeight = () => {
+      setViewportHeight(window.innerHeight);
+    };
+
+    window.addEventListener("resize", updateHeight);
+
+    return () => {
+      window.removeEventListener("resize", updateHeight);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -352,12 +372,15 @@ function Assistant() {
     }
   };
   return (
-    <div className="assistant-container">
+    <div
+      className="assistant-container"
+      style={{ height: `${viewportHeight}px` }}
+    >
       {/*  Mobile Overlay Backdrop: Closes the sidebar drawer when tapping anywhere on the chat canvas */}
       {isSidebarOpen && (
-        <div 
-          className="sidebar-overlay" 
-          onClick={() => setIsSidebarOpen(false)} 
+        <div
+          className="sidebar-overlay"
+          onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
@@ -366,8 +389,8 @@ function Assistant() {
         <button className="logout-btn" onClick={handleLogout}>
           Logout
         </button>
-        <button 
-          className="new-chat-btn" 
+        <button
+          className="new-chat-btn"
           onClick={async () => {
             await handleNewChat();
             setIsSidebarOpen(false); //  Auto-close drawer view on select
@@ -408,8 +431,8 @@ function Assistant() {
       <div className="chat-section">
         <div className="chat-header" style={{ display: 'flex', alignItems: 'center' }}>
           {/*  Mobile Toggle Trigger Hamburger Button */}
-          <button 
-            className="mobile-menu-btn" 
+          <button
+            className="mobile-menu-btn"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
           >
             ☰
@@ -558,7 +581,12 @@ function Assistant() {
               }}
             />
 
-            <button onClick={handleSend} disabled={isLoading} className="send-action-btn">
+            <button
+              onClick={handleSend}
+              onFocus={handleFocus}
+              disabled={isLoading}
+              className="send-action-btn"
+            >
               {isLoading ? "Thinking..." : "Send"}
             </button>
           </div>

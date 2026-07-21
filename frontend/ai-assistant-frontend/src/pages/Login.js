@@ -9,13 +9,20 @@ function Login() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-
+    const handleFocus = (e) => {
+        setTimeout(() => {
+            e.target.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+        }, 300);
+    };
     const handleLogin = async (e) => {
         e.preventDefault();
         if (!email.trim() || !password.trim()) {
-           alert("Please fill in all fields.");
-           return;
-       }
+            alert("Please fill in all fields.");
+            return;
+        }
 
         try {
 
@@ -69,6 +76,7 @@ function Login() {
                     type="email"
                     placeholder="Email"
                     value={email}
+                    onFocus={handleFocus}
                     onChange={(e) =>
                         setEmail(e.target.value)
                     }
@@ -79,6 +87,7 @@ function Login() {
                     type="password"
                     placeholder="Password"
                     value={password}
+                    onFocus={handleFocus}
                     onChange={(e) =>
                         setPassword(e.target.value)
                     }

@@ -9,13 +9,20 @@ function Register() {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-
+    const handleFocus = (e) => {
+        setTimeout(() => {
+            e.target.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+        }, 300);
+    };
     const handleRegister = async (e) => {
         e.preventDefault();
         try {
             if (!username.trim() || !email.trim() || !password.trim()) {
-              alert("Please fill in all required registration fields.");
-              return;
+                alert("Please fill in all required registration fields.");
+                return;
             }
             const response = await api.post(
                 "/api/auth/register",
@@ -67,6 +74,7 @@ function Register() {
                     type="text"
                     placeholder="Username"
                     value={username}
+                    onFocus={handleFocus}
                     onChange={(e) =>
                         setUsername(e.target.value)
                     }
@@ -77,6 +85,7 @@ function Register() {
                     type="email"
                     placeholder="Email"
                     value={email}
+                    onFocus={handleFocus}
                     onChange={(e) =>
                         setEmail(e.target.value)
                     }
@@ -87,6 +96,7 @@ function Register() {
                     type="password"
                     placeholder="Password"
                     value={password}
+                    onFocus={handleFocus}
                     onChange={(e) =>
                         setPassword(e.target.value)
                     }
