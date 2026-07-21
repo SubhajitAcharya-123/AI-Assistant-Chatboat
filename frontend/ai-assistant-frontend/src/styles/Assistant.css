@@ -21,10 +21,11 @@
   box-sizing: border-box;
   height: 100dvh;
 }
+
 .sidebar-sessions-list {
   flex: 1;
-  overflow-y: auto;  
-  overflow-x: hidden; 
+  overflow-y: auto;
+  overflow-x: hidden;
   margin-top: 10px;
   padding-right: 4px;
 }
@@ -33,6 +34,7 @@
 .sidebar-sessions-list::-webkit-scrollbar {
   width: 6px;
 }
+
 .sidebar-sessions-list::-webkit-scrollbar-thumb {
   background-color: #4d4d4f;
   border-radius: 3px;
@@ -69,7 +71,7 @@
   display: flex;
   flex-direction: column;
   background-color: #343541;
-  min-width: 0; 
+  min-width: 0;
   width: 100%;
   overflow: hidden;
 }
@@ -88,10 +90,11 @@
 
   background: #343541;
 }
+
 .messages-container {
   flex: 1;
   overflow-y: auto;
-  overflow-x:hidden;
+  overflow-x: hidden;
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -109,18 +112,18 @@
 }
 
 .welcome-container h1 {
-  font-size: 1.875rem; 
+  font-size: 1.875rem;
   font-weight: 700;
   margin-bottom: 8px;
-  color: #ffffff; 
+  color: #ffffff;
   letter-spacing: -0.025em;
-  
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 .welcome-container p {
-  color: #c5c5d2; 
+  color: #c5c5d2;
   font-size: 0.95rem;
   margin: 0;
   -webkit-font-smoothing: antialiased;
@@ -136,13 +139,16 @@
   white-space: pre-wrap;
   line-height: 1.5;
 }
+
 .message p {
   margin-top: 0;
   margin-bottom: 8px;
 }
+
 .message p:last-child {
-  margin-bottom: 0; 
+  margin-bottom: 0;
 }
+
 .message pre {
   background: #1e1e1e;
   padding: 12px;
@@ -162,9 +168,11 @@
   margin-top: 4px;
   margin-bottom: 4px;
 }
+
 .message li {
-  margin-bottom: 2px; 
+  margin-bottom: 2px;
 }
+
 .message h1,
 .message h2,
 .message h3 {
@@ -183,15 +191,19 @@
 }
 
 .message.assistant {
-  background: transparent; /* No bubble container background */
+  background: transparent;
+  /* No bubble container background */
   color: white;
-  max-width: 100%;         /* it expand across the chat pane */
-  padding: 16px 24px;         /* Clear side padding so it aligns perfectly with the header */
+  max-width: 100%;
+  /* it expand across the chat pane */
+  padding: 16px 24px;
+  /* Clear side padding so it aligns perfectly with the header */
   border-bottom: 1px solid #444654;
   box-sizing: border-box;
   word-wrap: break-word;
   word-break: break-word;
 }
+
 .message.assistant * {
   max-width: 100%;
   word-wrap: break-word;
@@ -222,7 +234,8 @@
 .typing-indicator {
   display: flex;
   gap: 5px;
-  padding: 12px 0; /* aligns with your no-bubble assistant layout */
+  padding: 12px 0;
+  /* aligns with your no-bubble assistant layout */
   align-items: center;
   height: 24px;
 }
@@ -230,7 +243,8 @@
 .typing-indicator span {
   width: 8px;
   height: 8px;
-  background-color: #acacbe; /* Clean gray dot color */
+  background-color: #acacbe;
+  /* Clean gray dot color */
   border-radius: 50%;
   display: inline-block;
   /* This runs the wave animation smoothly */
@@ -248,11 +262,16 @@
 
 /* The actual bouncing wave physics */
 @keyframes waveMovement {
-  0%, 80%, 100% { 
+
+  0%,
+  80%,
+  100% {
     transform: translateY(0);
   }
-  40% { 
-    transform: translateY(-8px); /* How high the dot bounces */
+
+  40% {
+    transform: translateY(-8px);
+    /* How high the dot bounces */
   }
 }
 
@@ -276,6 +295,7 @@
 .session-item.active {
   background: #3a3a3a;
 }
+
 .delete-btn {
   opacity: 0;
   border: none;
@@ -284,18 +304,22 @@
   font-size: 16px;
   flex-shrink: 0;
 }
+
 .session-item:hover .delete-btn {
   opacity: 1;
 }
+
 .session-item.active .delete-btn {
   opacity: 1;
 }
+
 .session-title {
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 /* Container adjustment to handle stacked preview architecture safely */
 .chat-section {
   position: relative;
@@ -304,7 +328,8 @@
 .input-area-wrapper {
   display: flex;
   flex-direction: column;
-  background-color: #40414f; /* Matches modern text-box console bars */
+  background-color: #40414f;
+  /* Matches modern text-box console bars */
   margin: 0 20px 20px 20px;
   border-radius: 12px;
   border: 1px solid #4a4b5d;
@@ -397,31 +422,34 @@
     opacity: 0;
     transform: translateY(4px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
 .chat-image-preview {
-    max-width: 300px;
-    max-height: 300px;
-    border-radius: 12px;
-    display: block;
-    margin-bottom: 10px;
+  max-width: 300px;
+  max-height: 300px;
+  border-radius: 12px;
+  display: block;
+  margin-bottom: 10px;
 }
 
 .file-link {
-    display: inline-block;
-    margin-bottom: 10px;
-    text-decoration: none;
-    font-weight: 500;
+  display: inline-block;
+  margin-bottom: 10px;
+  text-decoration: none;
+  font-weight: 500;
 }
 
 .message iframe {
-    border: none;
-    border-radius: 10px;
-    margin-bottom: 10px;
+  border: none;
+  border-radius: 10px;
+  margin-bottom: 10px;
 }
+
 .attachment-card {
   padding: 12px;
   border: 1px solid #444;
@@ -440,7 +468,7 @@
 .preview-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,.7);
+  background: rgba(0, 0, 0, .7);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -468,6 +496,7 @@
   height: 100%;
   object-fit: contain;
 }
+
 .text-preview-container {
   width: 100%;
   height: 100%;
@@ -483,25 +512,27 @@
   border-radius: 8px;
   font-family: monospace;
 }
+
 .logout-btn {
-    width: 100%;
-    margin-top: auto;
-    padding: 12px;
-    margin-bottom: 10px;
-    border: none;
-    border-radius: 8px;
+  width: 100%;
+  margin-top: auto;
+  padding: 12px;
+  margin-bottom: 10px;
+  border: none;
+  border-radius: 8px;
 
-    cursor: pointer;
+  cursor: pointer;
 
-    font-size: 15px;
-    font-weight: 600;
+  font-size: 15px;
+  font-weight: 600;
 
-    transition: 0.2s ease;
+  transition: 0.2s ease;
 }
 
 .logout-btn:hover {
-    transform: translateY(-1px);
+  transform: translateY(-1px);
 }
+
 /*mobile viewport */
 @media (max-width: 768px) {
   .assistant-container {
@@ -514,13 +545,16 @@
   /* Hide the desktop menu drawer completely by defaulting off-screen left */
   .sidebar {
     position: fixed;
-    left: -280px; /* Hidden off-screen right at start */
+    left: -280px;
+    /* Hidden off-screen right at start */
     top: 0;
     width: 280px;
     height: 100%;
-    z-index: 1000; /* Floats over message components */
+    z-index: 1000;
+    /* Floats over message components */
     transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    background-color: #1e1e24; /* Ensure contrast overlay matches design theme */
+    background-color: #1e1e24;
+    /* Ensure contrast overlay matches design theme */
   }
 
   /* Slides the sidebar drawer frame smoothly back into the viewport */
@@ -536,7 +570,8 @@
     width: 100vw;
     height: 100vh;
     background-color: rgba(0, 0, 0, 0.5);
-    z-index: 999; /* Standard layering shield underneath the drawer */
+    z-index: 999;
+    /* Standard layering shield underneath the drawer */
     backdrop-filter: blur(2px);
   }
 
@@ -573,7 +608,7 @@
 
   /* Input wrapper console touch improvements */
   .input-area-wrapper {
-    margin: 0 12px 12px 12px !important; 
+    margin: 0 12px 12px 12px !important;
     display: flex;
     flex-direction: column;
     position: sticky;
@@ -589,35 +624,43 @@
     width: 100%;
     box-sizing: border-box;
   }
+
   .send-action-btn {
-    white-space: nowrap !important; 
-    flex-shrink: 0 !important;     /*  Stops the button from getting squished out of view */
-    padding: 8px 16px !important; /* Makes it look clean and well-proportioned on phones */
-    align-self: center !important;
+    min-width: 70px;
+    width: 70px;
+
+    white-space: nowrap;
+    flex-shrink: 0;
+
+    padding: 8px;
+    font-size: 13px;
   }
-  
+
   .input-container input[type="text"] {
-    font-size: 16px !important; 
-    padding: 8px 4px !important; /* Reduces vertical height inside the text box */
+    font-size: 16px !important;
+    padding: 8px 4px !important;
+    /* Reduces vertical height inside the text box */
     margin: 0 !important;
     height: auto !important;
     background: transparent !important;
   }
+
   .attachment-add-btn {
     width: 34px !important;
     height: 34px !important;
     min-width: 34px !important;
-    flex-shrink: 0 !important;   
+    flex-shrink: 0 !important;
     border-radius: 50% !important;
-    
+
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    
+
     padding: 0 !important;
     line-height: 1 !important;
     font-size: 20px !important;
-    margin-right: 4px !important; /* Adds a tiny bit of breathing space before the input text box */
+    margin-right: 4px !important;
+    /* Adds a tiny bit of breathing space before the input text box */
   }
 }
 
@@ -626,6 +669,7 @@
   .mobile-menu-btn {
     display: none;
   }
+
   .sidebar-overlay {
     display: none;
   }

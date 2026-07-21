@@ -18,6 +18,7 @@ function Assistant() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+  const inputRef = useRef(null);
   const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
   const [currentSessionId, setCurrentSessionId] = useState(() => {
@@ -572,10 +573,19 @@ function Assistant() {
             </button>
 
             <input
+              ref={inputRef}
               type="text"
               placeholder="Message AI Assistant or upload files..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onFocus={() => {
+                setTimeout(() => {
+                  inputRef.current?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "end"
+                  });
+                }, 300);
+              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSend();
               }}
@@ -583,11 +593,10 @@ function Assistant() {
 
             <button
               onClick={handleSend}
-              onFocus={handleFocus}
               disabled={isLoading}
               className="send-action-btn"
             >
-              {isLoading ? "Thinking..." : "Send"}
+              {isLoading ? "..." : "Send"}
             </button>
           </div>
         </div>
