@@ -574,9 +574,18 @@
     /* Standard layering shield underneath the drawer */
     backdrop-filter: blur(2px);
   }
+  .chat-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1100;
+    background: #343541;
+  }
 
   /* Force the active chat zone layout to occupy full width bounds */
   .chat-section {
+    padding-top:70%;
     width: 100% !important;
     height: 100dvh;
     display: flex;
@@ -632,7 +641,7 @@
     white-space: nowrap;
     flex-shrink: 0;
 
-    padding: 8px;
+    padding: 8px 16px;
     font-size: 13px;
   }
 
@@ -668,6 +677,8 @@
 @media (min-width: 769px) {
   .mobile-menu-btn {
     display: none;
+    position: relative;
+    z-index: 1200;
   }
 
   .sidebar-overlay {
