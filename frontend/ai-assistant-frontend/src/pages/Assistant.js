@@ -35,7 +35,7 @@ function Assistant() {
     const updateHeight = () => {
       setViewportHeight(window.innerHeight);
     };
-
+    updateHeight(); 
     window.addEventListener("resize", updateHeight);
 
     return () => {
@@ -571,14 +571,6 @@ function Assistant() {
               placeholder="Message AI Assistant or upload files..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onFocus={() => {
-                setTimeout(() => {
-                  inputRef.current?.scrollIntoView({
-                    behavior: "smooth",
-                    block: "end"
-                  });
-                }, 300);
-              }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSend();
               }}

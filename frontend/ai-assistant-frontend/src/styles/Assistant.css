@@ -586,11 +586,15 @@
   /* Force the active chat zone layout to occupy full width bounds */
   .chat-section {
     padding-top: 70px;
+
     width: 100% !important;
-    height: 100dvh;
+    height: 100%;
+
     display: flex;
     flex-direction: column;
-  }
+
+    overflow: hidden;
+}
 
   /* Display the hamburger icon element cleanly only on mobile */
   .mobile-menu-btn {
@@ -606,6 +610,12 @@
 
   /* Adjust chat text sizes and bubble maximum space thresholds */
   .messages-container {
+    flex: 1;
+    min-height: 0;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
     padding: 12px 8px;
   }
 
@@ -620,9 +630,12 @@
     margin: 0 12px 12px 12px !important;
     display: flex;
     flex-direction: column;
-    position: sticky;
-    bottom: 0;
+
+    flex-shrink: 0;
+
+    position: relative;
     z-index: 50;
+
     padding-bottom: env(safe-area-inset-bottom);
   }
 
